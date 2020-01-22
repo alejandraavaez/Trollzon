@@ -48,10 +48,8 @@ class Trollzon{
         this.y = this.suelo
         this.width = 150
         this.height = 205
-        // this.velX = 0;
         this.velY = 0;
         this.jumping = false;
-        this.grounded = true;
         this.jumpStrength = 12;
         this.img = new Image()
         this.img.src = images.trollzon
@@ -85,7 +83,40 @@ class Trollzon{
             this.jumping = false
         }
     }
+    collisionCheck(object) {
+        var vectorX = this.x + this.width / 2 - (object.x + object.width / 2);
+        var vectorY = this.y + this.height / 2 - (object.y + object.height / 2);
+    
+        var halfWidths = this.width / 2 - 50 + object.width / 2;
+        var halfHeights = this.height / 2 -20 + object.height / 2;
+    
+        var collisionDirection = null;
+    
+        if (Math.abs(vectorX) < halfWidths && Math.abs(vectorY) < halfHeights) {
+            var offsetX = halfWidths - Math.abs(vectorX);
+            var offsetY = halfHeights - Math.abs(vectorY);
+            if (offsetX < offsetY) {
+            if (vectorX > 0) {
+                collisionDirection = "left";
+                this.x += offsetX;
+            } else {
+                collisionDirection = "right";
+                this.x -= offsetX;
+                }
+            } else {
+            if (vectorY > 0) {
+                collisionDirection = "top";
+                this.y += offsetY;
+            } else {
+                collisionDirection = "bottom";
+                this.y -= offsetY;
+                }
+            }
+        }
+        return collisionDirection;
+        }
 }
+
 
 //el babytroll juega por la compu si es solo un jugador - pero es preferible que sean los dos jugadores 
 class Babytroll{ 
@@ -199,17 +230,31 @@ class Platform{
         if (interval) return
         //trollBackground.audio.play()
         interval = setInterval(update, 1000 / 60)
-      } 
-      document.body.addEventListener('keydown', e => {
-        //   console.log(e.keyCode)
-          //para movimiento
-          keys[e.keyCode] = true
-        })
-        
-        //para movimiento
+
+        document.body.addEventListener('keydown', e => {
+            //   console.log(e.keyCode)
+              //para movimiento
+            keys[e.keyCode] = true
+            })
+            
         document.body.addEventListener('keyup', e => {
-          keys[e.keyCode] = false
-        })
+            keys[e.keyCode] = false
+            })
+        } 
+      
+        function checkPlatformCollition() {
+            platforms.forEach(platform => {
+              var direction = trollzonCharacter.collisionCheck(platform);
+
+              if (direction == "bottom") {
+                trollzonCharacter.jumping = false;
+                trollzonCharacter.velY = 0
+              } else if (direction == "top") {
+                trollzonCharacter.velY = 0;
+                trollzonCharacter.jumping = true;
+              }
+            });
+          }
 
     function update() {
         frames++
@@ -218,8 +263,8 @@ class Platform{
         babytrollCharacter.draw()
         for(let p =0; p < platforms.length; p++){
             platforms[p].draw()
+            trollzonCharacter.draw()
         }
-        trollzonCharacter.draw()
         console.log(keys)
         if (keys[39]) {
             trollzonCharacter.goRight()
@@ -242,26 +287,11 @@ class Platform{
             babytrollCharacter.goLeft()
         }
         trollzonCharacter.gravity()
+        checkPlatformCollition()
+    }
        
           
           
 
-        // drawObstacles()
-        // checkCollitions()
-        // ctx.fillText(String(score), canvas.width - 100, 100)
-      }
-
-    //   window.onload = function() {
-    //     document.getElementById("start-button").onclick = function
-    // () {
-    //       startGame();
-    //     };
-    //     document.onkeydown = e => {
-    //       switch (e.keyCode){
-    //         case 39:
-    //           return player.goRigth()
-    //         case 37:
-    //           return player.goLeft()
-    //       }
-    //     }
+    
         startGame()
