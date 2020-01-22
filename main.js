@@ -1,18 +1,21 @@
-// Beni <3 Karlish
 const canvas = document.querySelector('canvas')
 const ctx = canvas.getContext('2d')
 const platforms = []
 const platform_width = 120
 const platform_height = 10
+const keys = []
+let interval = 0
+const gravity = 0.98;
+
+
 
 const images = {
-    background:'',
-    trollzon:'',
-    babytroll:'',
-    food:'',
-    diaper:'',
-    floor:'',
-    platform:''
+    background:'./images/background.png',
+    trollzon:'./images/trollzon.png',
+    babytroll:'./images/babytrollamarillo.png',
+    food:'./images/diamond.png',
+    diaper:'./images/diapertroll.png',
+    platform:'./images/platform.png'
 }
 
 class Background {
@@ -27,7 +30,7 @@ class Background {
           this.draw() 
         }
         this.audio = new Audio()
-        this.audio.src = ''
+        this.audio.src = './trollzonaudio.mpeg'
         this.audio.loop = true
     }
     draw() {
@@ -40,12 +43,16 @@ class Background {
 
 class Trollzon{
     constructor(x,y){
-        this.x = x
-        this.y = y
-        this.width = 100
-        this.height = 100
-        this.sx = 100
-        this.sy = 100
+        this.suelo = 800
+        this.x = 0
+        this.y = this.suelo
+        this.width = 150
+        this.height = 205
+        // this.velX = 0;
+        this.velY = 0;
+        this.jumping = false;
+        this.grounded = true;
+        this.jumpStrength = 12;
         this.img = new Image()
         this.img.src = images.trollzon
         this.img.onload = () => {
@@ -53,31 +60,42 @@ class Trollzon{
         }
     }
     draw() {
-        ctx.drawImage(this.img, this.x,this.y, this.width, this.height, this.sx, this.sy)
+        ctx.drawImage(this.img, this.x, this.y, this.width, this.height)
     }  
-    goRigth(){
-       if(this.x > canvas.width - 100) return 
+    goRight(){
+       if(this.x > canvas.width - this.width) return
         this.x += 10
-        this.move() //falta crear la función de move
     }
     goLeft(){
+        if(this.x < - 0) return 
         this.x -= 10
-        this.move() //falta crear la función de move
     }
-    jump(){
-
+    jump() {
+        if (!this.jumping) {
+          this.velY = -this.jumpStrength * 2;
+          this.jumping = true;
+        }
+    }
+    gravity(){
+        this.y+=this.velY
+        this.velY+=gravity
+        if(this.y > this.suelo){
+            this.y = this.suelo
+            this.velY = 0
+            this.jumping = false
+        }
     }
 }
 
 //el babytroll juega por la compu si es solo un jugador - pero es preferible que sean los dos jugadores 
 class Babytroll{ 
     constructor(x,y){
-        this.x = x
-        this.y = y
-        this.width = 100
-        this.height = 100
-        this.sx = 100
-        this.sy = 100
+        this.x = 500
+        this.y = 60
+        this.width = 200
+        this.height = 163
+        // this.sx = 100
+        // this.sy = 100
         this.img = new Image()
         this.img.src = images.babytroll
         this.img.onload = () => {
@@ -85,16 +103,15 @@ class Babytroll{
         }
     }
     draw(){
-        ctx.drawImage(this.img, this.x, this.y, this.width, this.height, this.sx, this.sy)
+        ctx.drawImage(this.img, this.x, this.y, this.width, this.height)
     }
-    goRigth(){
-        if(this.x > canvas.width - 100) return 
+    goRight(){
+        if(this.x > canvas.width - 200) return 
          this.x += 10
-         this.move() //falta crear la función de move
      }
      goLeft(){
+        if(this.x < 0) return 
          this.x -= 10
-         this.move() //falta crear la función de move
      }
      isTouching(obstacle){ //falta crear check collitions
         return (
@@ -112,8 +129,8 @@ class Food{ //la comida tiene que aparecer random en las plataformas
         this.y = y
         this.width = 50
         this.height = 50
-        this.sx = 100
-        this.sy = 100
+        // this.sx = 100
+        // this.sy = 100
         this.img = new Image()
         this.img.src = images.food
         this.onload = () => {
@@ -121,7 +138,7 @@ class Food{ //la comida tiene que aparecer random en las plataformas
         }
     }
     draw(){
-        ctx.drawImage(this.img, this.x, this.y, this.width, this.height, this.sx, this.sy)
+        ctx.drawImage(this.img, this.x, this.y, this.width, this.height)
     }
 }
 
@@ -131,8 +148,8 @@ class Diaper{ //el diaper es arrojado por el bebé como si fuera una bala pero p
         this.y = y
         this.width = 50
         this.height = 50
-        this.sx = 100
-        this.sy = 100
+        // this.sx = 100
+        // this.sy = 100
         this.img = new Image()
         this.img.src = images.diaper
         this.onload = () => {
@@ -140,7 +157,7 @@ class Diaper{ //el diaper es arrojado por el bebé como si fuera una bala pero p
         }
     }
     draw(){
-        ctx.drawImage(this.img, this.x, this.y, this.width, this.height, this.sx, this.sy)
+        ctx.drawImage(this.img, this.x, this.y, this.width, this.height)
     }
 }
 /*----------la platform no tiene clase solo se dibujan--------*/
@@ -148,10 +165,10 @@ class Platform{
     constructor(x,y){
         this.x = x
         this.y = y
-        this.width = 50
-        this.height = 50
-        this.sx = 100
-        this.sy = 100
+        this.width = 300
+        this.height = 80
+        //this.sx = 100
+        //this.sy = 100
         this.img = new Image()
         this.img.src = images.platform
         this.onload = () => {
@@ -159,42 +176,92 @@ class Platform{
         }
     }
     draw(){
-        ctx.drawImage(this.img, this.x, this.y, this.width, this.height, this.sx, this.sy)
+        ctx.drawImage(this.img, 0, 0,100,50, this.x, this.y, this.width, this.height)
     }
 }
+    const trollzonCharacter = new Trollzon(0, canvas.heigth - 400)
+    const babytrollCharacter = new Babytroll(0, canvas.heigth - 200)
+    const trollBackground = new Background()
+    //plataforma 1
+    platforms.push(new Platform(100,550)) 
+    //plataforma 2
+    platforms.push(new Platform(550,720)) 
+    //plataforma 3
+    platforms.push(new Platform(1200,680)) 
+    //platforma 4
+    platforms.push(new Platform(1600,450))
+    //plataforma 5
+    platforms.push(new Platform(1250,250))
 
-    platforms.push({
-        x: canvas.width - 170,
-        y: 400,
-        width: platform_width,
-        height: platform_height
-    })
     
-    platforms.push({
-        x: 200,
-        y: canvas.height - 50,
-        width: platform_width,
-        height: platform_height
-    })
-    
-    platforms.push({
-        x: 400,
-        y: 400,
-        width: platform_width,
-        height: platform_height
-    })
-    
-    platforms.push({
-        x: canvas.width - 170,
-        y: canvas.height - 50,
-        width: platform_width,
-        height: platform_height
-    })
-    
-    platforms.push({
-        x: -canvas.width,
-        y: canvas.height - 5,
-        width: canvas.width + canvas.width * 2,
-        height: platform_height
-    })
 
+    function startGame() {
+        if (interval) return
+        //trollBackground.audio.play()
+        interval = setInterval(update, 1000 / 60)
+      } 
+      document.body.addEventListener('keydown', e => {
+        //   console.log(e.keyCode)
+          //para movimiento
+          keys[e.keyCode] = true
+        })
+        
+        //para movimiento
+        document.body.addEventListener('keyup', e => {
+          keys[e.keyCode] = false
+        })
+
+    function update() {
+        frames++
+        ctx.clearRect(0, 0, canvas.width, canvas.height)
+        trollBackground.draw()
+        babytrollCharacter.draw()
+        for(let p =0; p < platforms.length; p++){
+            platforms[p].draw()
+        }
+        trollzonCharacter.draw()
+        console.log(keys)
+        if (keys[39]) {
+            trollzonCharacter.goRight()
+        }
+        
+        if (keys[37]) {
+            trollzonCharacter.goLeft()
+        }
+        if (keys[38]) {
+            trollzonCharacter.jump();
+        }
+        
+        if (keys[68]) {
+            console.log('goRight')
+            babytrollCharacter.goRight()
+        }
+        
+        if (keys[65]) {
+            console.log('goleft')
+            babytrollCharacter.goLeft()
+        }
+        trollzonCharacter.gravity()
+       
+          
+          
+
+        // drawObstacles()
+        // checkCollitions()
+        // ctx.fillText(String(score), canvas.width - 100, 100)
+      }
+
+    //   window.onload = function() {
+    //     document.getElementById("start-button").onclick = function
+    // () {
+    //       startGame();
+    //     };
+    //     document.onkeydown = e => {
+    //       switch (e.keyCode){
+    //         case 39:
+    //           return player.goRigth()
+    //         case 37:
+    //           return player.goLeft()
+    //       }
+    //     }
+        startGame()
