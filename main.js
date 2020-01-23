@@ -246,7 +246,7 @@ class Platform{
 
     function startGame() {
         if (interval) return
-        //trollBackground.audio.play()
+        trollBackground.audio.play()
         interval = setInterval(update, 1000 / 60)
 
         document.body.addEventListener('keydown', e => {
