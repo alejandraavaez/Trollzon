@@ -40,6 +40,11 @@ class Background {
         ctx.drawImage(this.img, this.x, this.y, this.width, this.height)
         // ctx.drawImage(this.img,this.x + this.width,this.y,this.width,this.height)
     }
+    drawLife(life){
+        ctx.font = "40px Arial";
+        ctx.fillStyle = "white";
+        ctx.fillText(`Life Trollzon: ${life}`,canvas.width - 400, 100);
+    }
 }
 
 class Trollzon{
@@ -155,7 +160,7 @@ class Diamond{ //la comida tiene que aparecer random en las plataformas
         // this.sx = 100
         // this.sy = 100
         this.img = new Image()
-        this.img.src = images.food
+        this.img.src = images.diamond
         this.onload = () => {
             this.draw()
         }
@@ -168,10 +173,10 @@ class Diamond{ //la comida tiene que aparecer random en las plataformas
 class Diaper{ //el diaper es arrojado por el bebé como si fuera una bala pero para abajo; que sea un arreglo. objeto de pañal y: constante 
     constructor(x,y){
         this.x = x
+        this.height = 50
         this.suelo = suelo - this.height
         this.y = y
         this.width = 50
-        this.height = 50
         // this.sx = 100
         // this.sy = 100
         this.img = new Image()
@@ -185,6 +190,14 @@ class Diaper{ //el diaper es arrojado por el bebé como si fuera una bala pero p
     }
     dropDiaper(){
         this.y+=10
+    }
+    isOnFloor(){
+        console.log(this.suelo)
+        if(this.y > this.suelo){
+            return true
+        } else {
+            return false
+        }
     }
 }
 /*----------la platform no tiene clase solo se dibujan--------*/
@@ -223,11 +236,16 @@ class Platform{
     //plataforma 5
     platforms.push(new Platform(1150,250))
 
+    let randomPlatform = Math.floor(Math.random() * platforms.length)
+
+    const diamondRnd = new Diamond(platforms[randomPlatform].x + platforms[randomPlatform].width/2 , platforms[randomPlatform].y - 70)
+
+
     
 
     function startGame() {
         if (interval) return
-        trollBackground.audio.play()
+        //trollBackground.audio.play()
         interval = setInterval(update, 1000 / 60)
 
         document.body.addEventListener('keydown', e => {
@@ -268,7 +286,12 @@ class Platform{
         diapers.forEach(diaper => {
           var direction = trollzonCharacter.collisionCheck(diaper);
             if(direction){
+                diapers.splice(diapers.indexOf(diaper),1)
                 trollzonCharacter.life--
+                if(trollzonCharacter.life <= 0){
+                    alert('moriste guato empuliao')
+                }
+                console.log(trollzonCharacter.life)
             }
         });
       }
@@ -280,15 +303,16 @@ class Platform{
         ctx.clearRect(0, 0, canvas.width, canvas.height)
         trollBackground.draw()
         babytrollCharacter.draw()
+        trollBackground.drawLife(trollzonCharacter.life)
         for(let p =0; p < platforms.length; p++){
             platforms[p].draw()
         }
+        diamondRnd.draw()
         trollzonCharacter.draw()
         for(let d =0; d < diapers.length; d++){
             diapers[d].draw()
         }
         //move characters
-        console.log(keys)
         if (keys[39]) {
             trollzonCharacter.goRight()
         }
@@ -307,14 +331,18 @@ class Platform{
         if (keys[65]) {
             babytrollCharacter.goLeft()
         }
-
+        
         if(keys[83]){
             throwDiaper()
         }
         trollzonCharacter.gravity()
-
+        
         for(let d =0; d < diapers.length; d++){
             diapers[d].dropDiaper()
+            console.log(diapers[d].isOnFloor())
+            if(diapers[d].isOnFloor()){
+                diapers.splice(diapers.indexOf(diapers[d]),1)
+            }
         }
         //collition check
         checkPlatformCollition()
@@ -323,7 +351,14 @@ class Platform{
         if(trollzonCharacter.collisionCheck(babytrollCharacter)){
             alert('Trollzon wins, babytroll is back to mama!')
         }
-}
-
+        if(trollzonCharacter.collisionCheck(diamondRnd)){
+            trollzonCharacter.life+=1
+            let randomPlatform = Math.floor(Math.random() * platforms.length)
+            diamondRnd.x = platforms[randomPlatform].x + platforms[randomPlatform].width/2 
+            diamondRnd.y = platforms[randomPlatform].y - 70
+        }
+    }
+    
+    
        
         startGame()
