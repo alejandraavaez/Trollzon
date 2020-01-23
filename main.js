@@ -6,8 +6,9 @@ const platform_height = 10
 const keys = []
 let interval = 0
 const gravity = 0.98;
-const diapers = []
+let diapers = []
 const suelo = 980
+let state = 'start'
 
 
 const images = {
@@ -16,17 +17,20 @@ const images = {
     babytroll:'./images/babytrollamarillo.png',
     diamond:'./images/diamond.png',
     diaper:'./images/diapertroll.png',
-    platform:'./images/platform.png'
+    platform:'./images/platform.png',
+    startbg: './images/trollzonscreen.png',
+    player1Wins:'./images/trollzonscreen.png', //cargar imagen babytrol ganando
+    player2Wins:'./images/trollzonscreen.png' //cargar imagen trollzon ganando
 }
 
 class Background {
-    constructor(){
+    constructor(backgroundSrc){
         this.x = 0
         this.y = 0
         this.width = canvas.width
         this.height = canvas.height
         this.img = new Image()
-        this.img.src = images.background
+        this.img.src = backgroundSrc
         this.img.onload = () => {
           this.draw() 
         }
@@ -35,10 +39,7 @@ class Background {
         this.audio.loop = true
     }
     draw() {
-        if (this.x < -canvas.width) this.x = 0
-        // this.x--
         ctx.drawImage(this.img, this.x, this.y, this.width, this.height)
-        // ctx.drawImage(this.img,this.x + this.width,this.y,this.width,this.height)
     }
     drawLife(life){
         ctx.font = "40px Arial";
@@ -219,9 +220,9 @@ class Platform{
         ctx.drawImage(this.img, 0, 0,100,50, this.x, this.y, this.width, this.height)
     }
 }
-    const trollzonCharacter = new Trollzon(0, canvas.heigth - 400)
-    const babytrollCharacter = new Babytroll(0, canvas.heigth - 200)
-    const trollBackground = new Background()
+    let trollzonCharacter = new Trollzon(0, canvas.heigth - 400)
+    let babytrollCharacter = new Babytroll(0, canvas.heigth - 200)
+    let trollBackground = new Background(images.startbg)
     //guardo un diaper a la hora actual
     let throwTime = new Date()
 
@@ -249,7 +250,6 @@ class Platform{
         interval = setInterval(update, 1000 / 60)
 
         document.body.addEventListener('keydown', e => {
-            //   console.log(e.keyCode)
               //para movimiento
             keys[e.keyCode] = true
             })
@@ -289,16 +289,24 @@ class Platform{
                 diapers.splice(diapers.indexOf(diaper),1)
                 trollzonCharacter.life--
                 if(trollzonCharacter.life <= 0){
-                    alert('moriste guato empuliao')
+                    state = 'player1Wins'
+                    trollBackground = new Background(images.player1Wins)
                 }
                 console.log(trollzonCharacter.life)
             }
         });
       }
 
+    function startScreen(){
+        ctx.clearRect(0, 0, canvas.width, canvas.height)
+        trollBackground.draw()
+        if (keys[13]) {
+            trollBackground = new Background(images.background)
+            state = 'playing'
+        }
+    }
 
-    function update() {
-        frames++
+    function game(){
         //draw objects
         ctx.clearRect(0, 0, canvas.width, canvas.height)
         trollBackground.draw()
@@ -349,7 +357,8 @@ class Platform{
         checkDiapersCollition()
         //collition baby y Trollzon
         if(trollzonCharacter.collisionCheck(babytrollCharacter)){
-            alert('Trollzon wins, babytroll is back to mama!')
+            state = 'player2Wins'
+            trollBackground = new Background(images.player2Wins)
         }
         if(trollzonCharacter.collisionCheck(diamondRnd)){
             trollzonCharacter.life+=1
@@ -358,7 +367,52 @@ class Platform{
             diamondRnd.y = platforms[randomPlatform].y - 70
         }
     }
-    
-    
+
+    function player1Wins(){
+        ctx.clearRect(0, 0, canvas.width, canvas.height)
+        trollBackground.draw()
+        if (keys[13]) {
+            trollBackground = new Background(images.background) //cargar imagen babt troll ganando
+            state = 'playing'
+            restartGame()
+        }
+    }
+
+    function player2Wins(){
+        ctx.clearRect(0, 0, canvas.width, canvas.height)
+        trollBackground.draw()
+        if (keys[13]) {
+            trollBackground = new Background(images.background) //cargar imagen trollzon ganando
+            state = 'playing'
+            restartGame()
+        }
+    }
+
+    function restartGame(){
+        trollzonCharacter = new Trollzon(0, canvas.heigth - 400)
+        babytrollCharacter = new Babytroll(0, canvas.heigth - 200)
+        trollBackground = new Background(images.background)
+        diapers = []
+
+    }
+
+    function update() {
+        frames++
+        switch(state) {
+            case 'start': 
+                startScreen()
+                break
+            case 'playing':
+                game()
+                break
+            case 'player1Wins':
+                player1Wins()  
+                break
+            case 'player2Wins':
+                player2Wins()
+                break
+        }
+    }
        
-        startGame()
+    startGame()
+
