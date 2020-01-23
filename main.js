@@ -6,14 +6,15 @@ const platform_height = 10
 const keys = []
 let interval = 0
 const gravity = 0.98;
-
+const diapers = []
+const suelo = 980
 
 
 const images = {
     background:'./images/background.png',
     trollzon:'./images/trollzon.png',
     babytroll:'./images/babytrollamarillo.png',
-    food:'./images/diamond.png',
+    diamond:'./images/diamond.png',
     diaper:'./images/diapertroll.png',
     platform:'./images/platform.png'
 }
@@ -43,14 +44,15 @@ class Background {
 
 class Trollzon{
     constructor(x,y){
-        this.suelo = 800
         this.x = 0
-        this.y = this.suelo
         this.width = 150
         this.height = 205
+        this.suelo = suelo - this.height
+        this.y = this.suelo
         this.velY = 0;
         this.jumping = false;
         this.jumpStrength = 12;
+        this.life = 3
         this.img = new Image()
         this.img.src = images.trollzon
         this.img.onload = () => {
@@ -117,8 +119,6 @@ class Trollzon{
         }
 }
 
-
-//el babytroll juega por la compu si es solo un jugador - pero es preferible que sean los dos jugadores 
 class Babytroll{ 
     constructor(x,y){
         this.x = 500
@@ -144,17 +144,9 @@ class Babytroll{
         if(this.x < 0) return 
          this.x -= 10
      }
-     isTouching(obstacle){ //falta crear check collitions
-        return (
-          this.x < obstacle.x + obstacle.width &&
-          this.x + this.width > obstacle.x &&
-          this.y < obstacle.y + obstacle.height &&
-          this.y + this.height > obstacle.y
-        )
-      }
 }
 
-class Food{ //la comida tiene que aparecer random en las plataformas 
+class Diamond{ //la comida tiene que aparecer random en las plataformas 
     constructor(x,y){
         this.x = x
         this.y = y
@@ -176,6 +168,7 @@ class Food{ //la comida tiene que aparecer random en las plataformas
 class Diaper{ //el diaper es arrojado por el bebé como si fuera una bala pero para abajo; que sea un arreglo. objeto de pañal y: constante 
     constructor(x,y){
         this.x = x
+        this.suelo = suelo - this.height
         this.y = y
         this.width = 50
         this.height = 50
@@ -189,6 +182,9 @@ class Diaper{ //el diaper es arrojado por el bebé como si fuera una bala pero p
     }
     draw(){
         ctx.drawImage(this.img, this.x, this.y, this.width, this.height)
+    }
+    dropDiaper(){
+        this.y+=10
     }
 }
 /*----------la platform no tiene clase solo se dibujan--------*/
@@ -213,6 +209,9 @@ class Platform{
     const trollzonCharacter = new Trollzon(0, canvas.heigth - 400)
     const babytrollCharacter = new Babytroll(0, canvas.heigth - 200)
     const trollBackground = new Background()
+    //guardo un diaper a la hora actual
+    let throwTime = new Date()
+
     //plataforma 1
     platforms.push(new Platform(100,550)) 
     //plataforma 2
@@ -222,13 +221,13 @@ class Platform{
     //platforma 4
     platforms.push(new Platform(1600,450))
     //plataforma 5
-    platforms.push(new Platform(1250,250))
+    platforms.push(new Platform(1150,250))
 
     
 
     function startGame() {
         if (interval) return
-        //trollBackground.audio.play()
+        trollBackground.audio.play()
         interval = setInterval(update, 1000 / 60)
 
         document.body.addEventListener('keydown', e => {
@@ -256,15 +255,39 @@ class Platform{
             });
           }
 
+
+    //tirar pañales 
+    function throwDiaper(){
+        if(parseInt(new Date() - throwTime)/100 > 5) {
+            diapers.push(new Diaper(babytrollCharacter.x + babytrollCharacter.width/2 , babytrollCharacter.y + babytrollCharacter.height/2)) 
+            throwTime = new Date()
+        }
+    }
+
+    function checkDiapersCollition() {
+        diapers.forEach(diaper => {
+          var direction = trollzonCharacter.collisionCheck(diaper);
+            if(direction){
+                trollzonCharacter.life--
+            }
+        });
+      }
+
+
     function update() {
         frames++
+        //draw objects
         ctx.clearRect(0, 0, canvas.width, canvas.height)
         trollBackground.draw()
         babytrollCharacter.draw()
         for(let p =0; p < platforms.length; p++){
             platforms[p].draw()
-            trollzonCharacter.draw()
         }
+        trollzonCharacter.draw()
+        for(let d =0; d < diapers.length; d++){
+            diapers[d].draw()
+        }
+        //move characters
         console.log(keys)
         if (keys[39]) {
             trollzonCharacter.goRight()
@@ -278,20 +301,29 @@ class Platform{
         }
         
         if (keys[68]) {
-            console.log('goRight')
             babytrollCharacter.goRight()
         }
         
         if (keys[65]) {
-            console.log('goleft')
             babytrollCharacter.goLeft()
         }
-        trollzonCharacter.gravity()
-        checkPlatformCollition()
-    }
-       
-          
-          
 
-    
+        if(keys[83]){
+            throwDiaper()
+        }
+        trollzonCharacter.gravity()
+
+        for(let d =0; d < diapers.length; d++){
+            diapers[d].dropDiaper()
+        }
+        //collition check
+        checkPlatformCollition()
+        checkDiapersCollition()
+        //collition baby y Trollzon
+        if(trollzonCharacter.collisionCheck(babytrollCharacter)){
+            alert('Trollzon wins, babytroll is back to mama!')
+        }
+}
+
+       
         startGame()
