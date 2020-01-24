@@ -13,8 +13,8 @@ let state = 'start'
 
 const images = {
     background:'./images/background.png',
-    trollzon:'./images/tsprite2.png',
-    babytroll:'./images/babytrollamarillo.png',
+    trollzon:'./images/trollzonasprite.png',
+    babytroll:'./images/babytrollsprite.png',
     diamond:'./images/diamond.png',
     diaper:'./images/diapertroll.png',
     platform:'./images/platform.png',
@@ -53,6 +53,9 @@ class Trollzon{
         this.x = 0
         this.width = 150
         this.height = 205
+        this.sx = 220
+        this.sy = 300
+        this.sprite = 0
         this.suelo = suelo - this.height
         this.y = this.suelo
         this.velY = 0;
@@ -66,7 +69,7 @@ class Trollzon{
         }
     }
     draw() {
-        ctx.drawImage(this.img, this.x, this.y, this.width, this.height)
+        ctx.drawImage(this.img,this.sx * this.sprite, 0, this.sx, this.sy, this.x, this.y, this.width, this.height)
     }  
     goRight(){
        if(this.x > canvas.width - this.width) return
@@ -131,8 +134,9 @@ class Babytroll{
         this.y = 60
         this.width = 200
         this.height = 163
-        // this.sx = 100
-        // this.sy = 100
+        this.sx = 163
+        this.sy = 130
+        this.sprite = 0
         this.img = new Image()
         this.img.src = images.babytroll
         this.img.onload = () => {
@@ -140,7 +144,7 @@ class Babytroll{
         }
     }
     draw(){
-        ctx.drawImage(this.img, this.x, this.y, this.width, this.height)
+        ctx.drawImage(this.img,this.sx * this.sprite, 0, this.sx, this.sy, this.x, this.y, this.width, this.height)
     }
     goRight(){
         if(this.x > canvas.width - 200) return 
@@ -277,6 +281,7 @@ function startGame() {
 
     //tirar pañales 
     function throwDiaper(){
+        babytrollCharacter.sprite = 1
         if(parseInt(new Date() - throwTime)/100 > 5) {
             diapers.push(new Diaper(babytrollCharacter.x + babytrollCharacter.width/2 , babytrollCharacter.y + babytrollCharacter.height/2)) 
             throwTime = new Date()
@@ -330,7 +335,10 @@ function startGame() {
             trollzonCharacter.goLeft()
         }
         if (keys[38]) {
+            trollzonCharacter.sprite = 1
             trollzonCharacter.jump();
+        } else {
+            trollzonCharacter.sprite = 0
         }
         
         if (keys[68]) {
@@ -343,6 +351,8 @@ function startGame() {
         
         if(keys[83]){
             throwDiaper()
+        } else {
+            babytrollCharacter.sprite = 0
         }
         trollzonCharacter.gravity()
         
