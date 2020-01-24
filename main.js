@@ -13,14 +13,14 @@ let state = 'start'
 
 const images = {
     background:'./images/background.png',
-    trollzon:'./images/trollzon.png',
+    trollzon:'./images/tsprite2.png',
     babytroll:'./images/babytrollamarillo.png',
     diamond:'./images/diamond.png',
     diaper:'./images/diapertroll.png',
     platform:'./images/platform.png',
     startbg: './images/trollzonscreen.png',
-    player1Wins:'./images/trollzonscreen.png', //cargar imagen babytrol ganando
-    player2Wins:'./images/trollzonscreen.png' //cargar imagen trollzon ganando
+    player1Wins:'./images/player1wins.png', //cargar imagen babytrol ganando
+    player2Wins:'./images/player2wins.png' //cargar imagen trollzon ganando
 }
 
 class Background {
@@ -373,7 +373,7 @@ function startGame() {
         ctx.clearRect(0, 0, canvas.width, canvas.height)
         trollBackground.draw()
         if (keys[13]) {
-            trollBackground = new Background(images.background) //cargar imagen babt troll ganando
+            trollBackground = new Background(images.player1Wins) //cargar imagen babt troll ganando
             state = 'playing'
             restartGame()
         }
@@ -383,7 +383,7 @@ function startGame() {
         ctx.clearRect(0, 0, canvas.width, canvas.height)
         trollBackground.draw()
         if (keys[13]) {
-            trollBackground = new Background(images.background) //cargar imagen trollzon ganando
+            trollBackground = new Background(images.player2Wins) //cargar imagen trollzon ganando
             state = 'playing'
             restartGame()
         }
