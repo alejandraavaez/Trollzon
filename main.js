@@ -35,7 +35,7 @@ class Background {
           this.draw() 
         }
         this.audio = new Audio()
-        this.audio.src = './trollzonaudio.mpeg'
+        this.audio.src = './trollzone.mp3'
         this.audio.loop = true
     }
     draw() {
@@ -220,11 +220,11 @@ class Platform{
         ctx.drawImage(this.img, 0, 0,100,50, this.x, this.y, this.width, this.height)
     }
 }
-    let trollzonCharacter = new Trollzon(0, canvas.heigth - 400)
-    let babytrollCharacter = new Babytroll(0, canvas.heigth - 200)
-    let trollBackground = new Background(images.startbg)
-    //guardo un diaper a la hora actual
-    let throwTime = new Date()
+let trollzonCharacter = new Trollzon(0, canvas.heigth - 400)
+let babytrollCharacter = new Babytroll(0, canvas.heigth - 200)
+let trollBackground = new Background(images.startbg)
+//guardo un diaper a la hora actual
+let throwTime = new Date()
 
     //plataforma 1
     platforms.push(new Platform(100,550)) 
@@ -237,41 +237,42 @@ class Platform{
     //plataforma 5
     platforms.push(new Platform(1150,250))
 
-    let randomPlatform = Math.floor(Math.random() * platforms.length)
-
-    const diamondRnd = new Diamond(platforms[randomPlatform].x + platforms[randomPlatform].width/2 , platforms[randomPlatform].y - 70)
-
-
     
+let randomPlatform = Math.floor(Math.random() * platforms.length)
 
-    function startGame() {
-        if (interval) return
-        trollBackground.audio.play()
-        interval = setInterval(update, 1000 / 60)
+const diamondRnd = new Diamond(platforms[randomPlatform].x + platforms[randomPlatform].width/2 , platforms[randomPlatform].y - 70)
 
-        document.body.addEventListener('keydown', e => {
-              //para movimiento
-            keys[e.keyCode] = true
-            })
-            
-        document.body.addEventListener('keyup', e => {
-            keys[e.keyCode] = false
-            })
-        } 
+function startGame() {
+    if (interval) return
+    trollBackground.audio.play()
+    interval = setInterval(update, 1000 / 60)
+
+    document.body.addEventListener('keydown', e => {
+            //para movimiento
+        keys[e.keyCode] = true
+        })
+        
+    document.body.addEventListener('keyup', e => {
+        keys[e.keyCode] = false
+        })
+        // if (keys[32]) {
+        //     trollBackground.audio.play()
+        // }
+    } 
       
-        function checkPlatformCollition() {
-            platforms.forEach(platform => {
-              var direction = trollzonCharacter.collisionCheck(platform);
+    function checkPlatformCollition() {
+        platforms.forEach(platform => {
+            var direction = trollzonCharacter.collisionCheck(platform);
 
-              if (direction == "bottom") {
-                trollzonCharacter.jumping = false;
-                trollzonCharacter.velY = 0
-              } else if (direction == "top") {
-                trollzonCharacter.velY = 0;
-                trollzonCharacter.jumping = true;
-              }
-            });
-          }
+            if (direction == "bottom") {
+            trollzonCharacter.jumping = false;
+            trollzonCharacter.velY = 0
+            } else if (direction == "top") {
+            trollzonCharacter.velY = 0;
+            trollzonCharacter.jumping = true;
+            }
+        });
+        }
 
 
     //tirar pañales 
@@ -395,7 +396,7 @@ class Platform{
         diapers = []
 
     }
-
+    
     function update() {
         frames++
         switch(state) {
@@ -413,6 +414,4 @@ class Platform{
                 break
         }
     }
-       
-    startGame()
-
+document.onmousedown = ()=> startGame()
